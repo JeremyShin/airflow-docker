@@ -10,6 +10,9 @@ RUN apt-get update \
 
 USER airflow
 COPY ./dags /opt/airflow/dags
+COPY ./logs /opt/airflow/logs
+COPY ./config /opt/airflow/config
+COPY ./plugins /opt/airflow/plugins
 COPY requirements.txt ./requirements.txt
 RUN pip3 install -r requirements.txt
 
