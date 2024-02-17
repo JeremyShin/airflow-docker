@@ -2,8 +2,10 @@ colima , docker-compose 설치
 - https://smallsharpsoftwaretools.com/tutorials/use-colima-to-run-docker-containers-on-macos/
 
 ```shell
-sudo chown -R $(whoami) ~/.docker
+# 콜리마 설치 후 커스터마이즈 실행
+colima start --cpu 4 --memory 8
 
+sudo chown -R $(whoami) ~/.docker
 docker-compose up --build
 ```
 
