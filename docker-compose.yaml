@@ -64,6 +64,7 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    AIRFLOW_CONN_AWS_DEFAULT: aws://a:a@?host=http://localstack:4566&region_name=us-east-1
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -96,6 +97,7 @@ services:
       TZ: Asia/Seoul
     volumes:
       - postgres-custom-db-volume:/var/lib/postgresql/data
+      - ./logs:/opt/airflow/logs:rw
     ports:
       - 5432:5432
     networks:
@@ -289,8 +291,10 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_UPGRADE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+#      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
+#      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+      _AIRFLOW_WWW_USER_USERNAME: 'admin'
+      _AIRFLOW_WWW_USER_PASSWORD: 'admin'
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
@@ -298,6 +302,41 @@ services:
     networks:
       network_custom:
         ipv4_address: 172.28.0.10
+
+  localstack:
+    image: localstack/localstack:0.14.3   # 버전에 따라 설정이 다른점이 많아서 지정하였음
+    ports:
+      - "4510-4559:4510-4559"  # external service port range
+      - "4566:4566"            # LocalStack Edge Proxy
+    environment:
+      - SERVICES=sns,sqs,s3,dynamodb,ssm,secretsmanager   # 사용할 서비스 목록
+      - DEBUG=${DEBUG-}
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_ACCESS_KEY_ID=test            # 내부에서 aws 커맨드 사용을 위해 지정 awslocal 을 사용하면 필요없음
+      - AWS_SECRET_ACCESS_KEY=test        # 위와 동일
+      - AWS_DEFAULT_REGION=us-east-1      # 위와 동일
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      network_custom:
+        ipv4_address: 172.28.0.11
+
+  awscli:
+    image: amazon/aws-cli
+    volumes:
+      - ./dev_env:/project/dev_env
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    entrypoint: /bin/sh -c
+    depends_on:
+      - localstack
+    networks:
+      network_custom:
+        ipv4_address: 172.28.0.12
 
 
   airflow-cli:
