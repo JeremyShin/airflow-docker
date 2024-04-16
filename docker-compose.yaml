@@ -309,7 +309,7 @@ services:
       - "4510-4559:4510-4559"  # external service port range
       - "4566:4566"            # LocalStack Edge Proxy
     environment:
-      - SERVICES=sns,sqs,s3,dynamodb,ssm,secretsmanager   # 사용할 서비스 목록
+      - SERVICES=s3,dynamodb,secretsmanager,kinesis,DynamoDB   # 사용할 서비스 목록
       - DEBUG=${DEBUG-}
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
