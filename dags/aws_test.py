@@ -17,10 +17,7 @@ with DAG(
 
     def aws_test():
         # Retrieve the list of existing buckets
-        s3 = boto3.client('s3',
-         aws_access_key_id='test',
-         aws_secret_access_key= 'test',
-         endpoint_url="http://172.28.0.11:4566")
+        s3 = boto3.client('s3')
         response = s3.list_buckets()
 
         # Output the bucket names
